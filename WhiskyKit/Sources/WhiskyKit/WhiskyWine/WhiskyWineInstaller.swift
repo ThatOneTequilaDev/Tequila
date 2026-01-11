@@ -19,124 +19,107 @@
 import Foundation
 import SemanticVersion
 
-public class WhiskyWineInstaller {
-    /// The Whisky application folder
-    public static let applicationFolder = FileManager.default.urls(
-        for: .applicationSupportDirectory, in: .userDomainMask
-        )[0].appending(path: Bundle.whiskyBundleIdentifier)
+public final class WhiskyWineInstaller {
 
-    /// The folder of all the libfrary files
-    public static let libraryFolder = applicationFolder.appending(path: "Libraries")
+    // MARK: - Paths
 
-    /// URL to the installed `wine` `bin` directory
-    public static let binFolder: URL = libraryFolder.appending(path: "Wine").appending(path: "bin")
-
-    public static func isWhiskyWineInstalled() -> Bool {
-        return whiskyWineVersion() != nil
-    }
-
-    public static func install(from: URL) {
-        do {
-            if !FileManager.default.fileExists(atPath: applicationFolder.path) {
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
-            } else {
-                // Recreate it
-                try FileManager.default.removeItem(at: applicationFolder)
-                try FileManager.default.createDirectory(at: applicationFolder, withIntermediateDirectories: true)
-            }
-
-            try Tar.untar(tarBall: from, toURL: applicationFolder)
-            try FileManager.default.removeItem(at: from)
-            // Remove quarantine attribute from the installed files
-            removeQuarantineAttribute()
-        } catch {
-            print("Failed to install WhiskyWine: \(error)")
+    /// Root folder where bundled libraries live inside the app bundle
+    /// MyBourbon.app/Contents/Resources/Libraries
+    public static let libraryFolder: URL = {
+        guard let resourceURL = Bundle.main.resourceURL else {
+            fatalError("Unable to locate app Resources directory")
         }
+        return resourceURL.appendingPathComponent("Libraries", isDirectory: true)
+    }()
+
+    /// Wine bin folder inside the bundled Wine directory
+    public static let binFolder: URL = {
+        libraryFolder
+            .appendingPathComponent("Wine", isDirectory: true)
+            .appendingPathComponent("bin", isDirectory: true)
+    }()
+
+    // MARK: - Status
+
+    /// Returns true if Wine is present inside the app bundle
+    public static func isWhiskyWineInstalled() -> Bool {
+        FileManager.default.fileExists(atPath: binFolder.path)
     }
-    /// Removes the quarantine attribute from the Bourbon application support directory
+
+    // MARK: - Install (Bundled Wine)
+
+    /// Bundled Wine cannot be installed at runtime
+    /// This method only ensures the quarantine attribute is removed
+    public static func install(from _: URL) {
+        removeQuarantineAttribute()
+    }
+
+    // MARK: - Quarantine
+
+    /// Removes the quarantine attribute from the bundled Libraries directory
     private static func removeQuarantineAttribute() {
-        let bourbonPath = "\(NSHomeDirectory())/Library/Application Support/com.leonewton.Bourbon/"
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
-        process.arguments = ["-dr", "com.apple.quarantine", bourbonPath]
+        process.arguments = [
+            "-dr",
+            "com.apple.quarantine",
+            libraryFolder.path
+        ]
+
         do {
             try process.run()
             process.waitUntilExit()
+
             if process.terminationStatus == 0 {
-                print("Successfully removed quarantine attribute from Bourbon directory")
+                print("Successfully removed quarantine attribute from bundled Wine")
             } else {
-                print("Warning: Failed to remove quarantine attribute (exit code: \(process.terminationStatus))")
+                print("xattr exited with code \(process.terminationStatus)")
             }
         } catch {
-            print("Warning: Could not run xattr command to remove quarantine: \(error)")
+            print("Failed to remove quarantine attribute: \(error)")
         }
     }
 
+    // MARK: - Uninstall (Disabled)
+
+    /// Bundled Wine cannot be removed at runtime
     public static func uninstall() {
-        do {
-            try FileManager.default.removeItem(at: libraryFolder)
-        } catch {
-            print("Failed to uninstall WhiskyWine: \(error)")
-        }
+        print("Bundled Wine cannot be uninstalled")
     }
 
+    // MARK: - Updates (Disabled)
+
+    /// Runtime Wine updates are disabled for bundled Wine
     public static func shouldUpdateWhiskyWine() async -> (Bool, SemanticVersion) {
-        // swiftlint:disable:next line_length
-        let versionPlistURL = "https://raw.githubusercontent.com/leonewt0n/Bourbon/refs/heads/main/WhiskyWineVersion.plist"
-        let localVersion = whiskyWineVersion()
-
-        var remoteVersion: SemanticVersion?
-
-        if let remoteUrl = URL(string: versionPlistURL) {
-            remoteVersion = await withCheckedContinuation { continuation in
-                URLSession(configuration: .ephemeral).dataTask(with: URLRequest(url: remoteUrl)) { data, _, error in
-                    do {
-                        if error == nil, let data = data {
-                            let decoder = PropertyListDecoder()
-                            let remoteInfo = try decoder.decode(WhiskyWineVersion.self, from: data)
-                            let remoteVersion = remoteInfo.version
-
-                            continuation.resume(returning: remoteVersion)
-                            return
-                        }
-                        if let error = error {
-                            print(error)
-                        }
-                    } catch {
-                        print(error)
-                    }
-
-                    continuation.resume(returning: nil)
-                }.resume()
-            }
-        }
-
-        if let localVersion = localVersion, let remoteVersion = remoteVersion {
-            if localVersion < remoteVersion {
-                return (true, remoteVersion)
-            }
-        }
-
-        return (false, SemanticVersion(0, 0, 0))
+        let version = whiskyWineVersion() ?? SemanticVersion(0, 0, 0)
+        return (false, version)
     }
+
+    // MARK: - Version
 
     public static func whiskyWineVersion() -> SemanticVersion? {
-        do {
-            let versionPlist = libraryFolder
-                .appending(path: "WhiskyWineVersion")
-                .appendingPathExtension("plist")
+        let versionPlistURL = libraryFolder
+            .appendingPathComponent("WhiskyWineVersion")
+            .appendingPathExtension("plist")
 
+        guard FileManager.default.fileExists(atPath: versionPlistURL.path) else {
+            return nil
+        }
+
+        do {
+            let data = try Data(contentsOf: versionPlistURL)
             let decoder = PropertyListDecoder()
-            let data = try Data(contentsOf: versionPlist)
             let info = try decoder.decode(WhiskyWineVersion.self, from: data)
             return info.version
         } catch {
-            print(error)
+            print("Failed to read WhiskyWineVersion plist: \(error)")
             return nil
         }
     }
 }
 
+// MARK: - Model
+
 struct WhiskyWineVersion: Codable {
-    var version: SemanticVersion = SemanticVersion(1, 0, 0)
+    let version: SemanticVersion
 }
