@@ -4,7 +4,7 @@ Thanks for your interest! First, make a fork of Whisky, make a new branch for yo
 
 # Build environment
 
-Whisky is built using Xcode 15 on macOS Sonoma. All external dependencies are handled through the Swift Package Manager.
+Whisky is built using Xcode 15 on macOS Tahoe. All external dependencies are handled through the Swift Package Manager.
 
 # Code style
 
