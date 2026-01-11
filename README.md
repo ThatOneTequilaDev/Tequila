@@ -14,7 +14,7 @@
 
 ---
 
-Tequila provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Whisky is built on top of Gcenx's Wine 10, and Apple's own `Game Porting Toolkit`.
+Tequila provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Whisky is built on top of Gcenx's Wine 11, and Apple's own `Game Porting Toolkit`.
 
 ---
 
