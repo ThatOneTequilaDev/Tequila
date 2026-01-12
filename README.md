@@ -14,7 +14,7 @@
 
 ---
 
-Tequila provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Whisky is built on top of Gcenx's Wine 11, and Apple's own `Game Porting Toolkit`.
+Tequila provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. It is built on top of Whisky, Gcenx's Wine 11, and Apple's own `Game Porting Toolkit`.
 
 ---
 
@@ -38,7 +38,7 @@ Tequila is possible thanks to several projects:
 - [swift-argument-parser](https://github.com/apple/swift-argument-parser) by Apple
 - [SwiftTextTable](https://github.com/scottrhoyt/SwiftyTextTable) by scottrhoyt
 - [Whiskey.app](https://github.com/Whisky-App/Whisky) 
-- (wine) (https://github.com/Gcenx/macOS_Wine_builds) by Gcenx and WineHQ
+- [Wine](https://github.com/Gcenx/macOS_Wine_builds) by Gcenx and WineHQ
 
 
 
