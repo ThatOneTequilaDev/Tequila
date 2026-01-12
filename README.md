@@ -37,7 +37,7 @@ Tequila is possible thanks to several projects:
 - [SemanticVersion](https://github.com/SwiftPackageIndex/SemanticVersion) by SwiftPackageIndex
 - [swift-argument-parser](https://github.com/apple/swift-argument-parser) by Apple
 - [SwiftTextTable](https://github.com/scottrhoyt/SwiftyTextTable) by scottrhoyt
-- [Whiskey.app](https://github.com/Whisky-App/Whisky) 
+- [Whisky](https://github.com/Whisky-App/Whisky) by Whisky-app
 - [Wine](https://github.com/Gcenx/macOS_Wine_builds) by Gcenx and WineHQ
 
 
